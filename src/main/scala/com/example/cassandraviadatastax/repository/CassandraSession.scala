@@ -1,3 +1,5 @@
+package com.example.cassandraviadatastax.repository
+
 import java.util.concurrent.{Future, TimeUnit}
 
 import com.datastax.driver.core.{Cluster, RegularStatement, Statement}
