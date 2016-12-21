@@ -19,6 +19,7 @@ class SimpleCassandraRepositoryForTest {
   select.where(QueryBuilder.eq(fieldId, QueryBuilder.bindMarker("id")))
   val statement = session.prepare(select.toString)
 
+
   def cassandraSelect(id: Int) = {
     val bindStatement = statement.bind
     bindStatement.setInt("id", id)
@@ -27,10 +28,25 @@ class SimpleCassandraRepositoryForTest {
     session.executeAsync(bindStatement)
   }
 
+  def insert(user: User) = {
+    val insert = QueryBuilder.insertInto(tableUser)
+      .value(fieldId, user.id)
+      .value(fieldName, user.name)
+      .value(fieldEmail, user.email)
+      .value(fieldMobile, user.mobile)
+      .value(fieldAddress, user.address)
+
+    session.execute(insert.toString)
+  }
+
   def selectById(id: Int) = {
     val users = new ArrayBuffer[User]
     cassandraSelect(id).get.all().forEach(f => users += User(f.getInt(fieldId), f.getString(fieldName),
       f.getString(fieldEmail), f.getString(fieldMobile), f.getString(fieldAddress)))
     users
   }
+}
+
+object SimpleCassandraRepositoryForTest {
+  def apply() = new SimpleCassandraRepositoryForTest
 }
