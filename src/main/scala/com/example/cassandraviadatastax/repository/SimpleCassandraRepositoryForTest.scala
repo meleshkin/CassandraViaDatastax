@@ -1,7 +1,9 @@
 package com.example.cassandraviadatastax.repository
 
-import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
+import com.example.cassandraviadatastax.application.Configuration.{keyspace, hostname, username, password, port}
+import com.example.cassandraviadatastax.application.Configuration.{fieldId, fieldName, fieldEmail, fieldMobile, fieldAddress}
+import com.example.cassandraviadatastax.application.Configuration.{tableUser, consistencyLevel}
 import com.example.cassandraviadatastax.model.User
 
 import scala.collection.mutable.ArrayBuffer
@@ -10,33 +12,25 @@ import scala.collection.mutable.ArrayBuffer
   * Created by Michael on 20.12.2016.
   */
 class SimpleCassandraRepositoryForTest {
-  val keyspace = "users"
-  val hostname = "127.0.0.1"
-  val port = 9042
-  val username = ""
-  val password = ""
+
   val session = new CassandraSession(keyspace, hostname, port, username, password)
 
-  val select = QueryBuilder.select().from("User")
-  select.where(QueryBuilder.eq("id", QueryBuilder.bindMarker("id")))
+  val select = QueryBuilder.select().from(tableUser)
+  select.where(QueryBuilder.eq(fieldId, QueryBuilder.bindMarker("id")))
   val statement = session.prepare(select.toString)
 
   def cassandraSelect(id: Int) = {
     val bindStatement = statement.bind
     bindStatement.setInt("id", id)
-    bindStatement.setConsistencyLevel(ConsistencyLevel.ALL)
+    bindStatement.setConsistencyLevel(consistencyLevel)
 
     session.executeAsync(bindStatement)
   }
 
   def selectById(id: Int) = {
     val users = new ArrayBuffer[User]
-    cassandraSelect(id).get.all().forEach(f => users += User(f.getInt("id"), f.getString("name"), f.getString("email"), f.getString("mobile"), f.getString("address")))
+    cassandraSelect(id).get.all().forEach(f => users += User(f.getInt(fieldId), f.getString(fieldName),
+      f.getString(fieldEmail), f.getString(fieldMobile), f.getString(fieldAddress)))
     users
   }
-}
-
-object SimpleCassandraRepositoryForTest extends App {
-  val repo = new SimpleCassandraRepositoryForTest
-  println(repo.selectById(1))
 }
