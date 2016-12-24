@@ -17,8 +17,8 @@ class CassandraSession(keyspace: String, hostname: String, port: Int, username: 
   def execute(statement: Statement) = session.execute(statement)
   def execute(statement: String) = session.execute(statement)
 
-  def shutdown() = {
-    val future = session.closeAsync();
+  def shutdownAsync() = {
+    val future = session.closeAsync
     new Future[Void] {
       override def get(): Void = future.get()
       override def get(timeout: Long, unit: TimeUnit): Void = future.get(timeout, unit)
@@ -26,5 +26,10 @@ class CassandraSession(keyspace: String, hostname: String, port: Int, username: 
       override def isDone: Boolean = future.isDone
       override def isCancelled: Boolean = future.isCancelled
     }
+  }
+
+  def shutdown() =  {
+    session.close
+    session.getCluster.close
   }
 }
